@@ -118,8 +118,8 @@ def register(eml, captcha):
     res = requests.post(url, params=params, headers=headers)
 
     if res.status_code == 200:
-        sslink = login(eml)
-        return sslink
+        data = res.json()
+        return data
     print(res.json(), res.status_code)
 
 
