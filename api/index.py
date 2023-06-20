@@ -1,4 +1,4 @@
-from flask import Flask, Response
+from flask import Flask
 import requests
 from bs4 import BeautifulSoup
 import json
@@ -6,16 +6,17 @@ import urllib.parse
 import random
 
 app = Flask(__name__)
+app.debug = True
 
 
-# @app.route('/')
-# def home():
-#     return 'Hello, World!'
+@app.route('/')
+def home():
+    return 'Hello, World!'
 
 
-# @app.route('/about')
-# def about():
-#     return 'About'
+@app.route('/about')
+def about():
+    return 'About'
 
 
 # ===================
@@ -45,7 +46,7 @@ def getSSLink(cookies):
     fifth_a_tag = buttons[0].select('a')[4]
     # 获取"data-clipboard-text"属性的内容
     data_clipboard_text = fifth_a_tag['data-clipboard-text']
-    print("\033[0;32m"+data_clipboard_text+"\033[0m")
+    return data_clipboard_text
 
 
 # 购买
@@ -66,21 +67,21 @@ def buy(cookies):
     if res.status_code == 200:
         data = res.json()
         print(f"\033[40;32m {data} \033[0m")
-        getSSLink(cookies)
-        return
+        sslink =  getSSLink(cookies)
+        return sslink
     print(res.json(), res.status_code)
 
 
 # 登陆
-def login():
+def login(eml):
     url = 'https://yypro.pro/auth/login'
     headers = {
         "user-agent": userAgent,
         "referer": 'https://yypro.pro/'
     }
     params = {
-        'email': email,
-        'passwd': email,
+        'email': eml,
+        'passwd': eml,
         'code': '',
         'remember_me': 'on'
     }
@@ -93,66 +94,58 @@ def login():
         # 将cookie保存到本地文件
         with open('cookie.json', 'w') as f:
             json.dump(cookies, f)
-        buy(cookies)
-        return
+        sslink = buy(cookies)
+        return sslink
     print(res.json(), res.status_code)
 
 
 # 注册
-def register(captcha):
+@app.route('/register/<eml>/<captcha>')
+def register(eml, captcha):
     url = 'https://yypro.pro/auth/register'
     headers = {
         "user-agent": userAgent,
         "referer": 'https://yypro.pro/'
     }
     params = {
-        'email': email,
-        'name': email,
-        'passwd': email,
-        'repasswd': email,
+        'email': eml,
+        'name': eml,
+        'passwd': eml,
+        'repasswd': eml,
         'code': 0,
         'emailcode': captcha
     }
     res = requests.post(url, params=params, headers=headers)
 
     if res.status_code == 200:
-        data = res.json()
-        print(f"\033[40;32m {data} \033[0m")
-        login()
-        return
+        sslink = login(eml)
+        return sslink
     print(res.json(), res.status_code)
 
 
 # 删除用户api
-def delateUser():
+@app.route('/kill_user/<eml>')
+def delateUser(eml):
     # login()
     # pwd = input('请输入您的密码：')
-    global email
     url = 'https://yypro.pro/user/kill'
     headers = {
         "user-agent": userAgent,
         "referer": 'https://yypro.pro/user/profile'
     }
     params = {
-      'passwd': email
+      'passwd': eml
     }
 
     cookies = {}
     with open('cookie.json', 'r') as f:
         cookies = json.load(f)
     cookies['email'] = urllib.parse.unquote(cookies['email'])
-    print(cookies)
     response = requests.post(url, params=params, cookies=cookies, headers=headers)
-    print(response.text)
     if response.status_code == 200:
-        # print('删除用户成功')
         data = response.json()
-        print(f"\033[40;32m deluser== {data} \033[0m")
-        email = input('请输入要注册的邮箱： ')
-        sendCaptcha()
-        return
+        return data
     print('deluser===', response.json())
-# delateUser()
 
 
 # 发送注册验证码
@@ -171,11 +164,11 @@ def sendCaptcha(eml):
     if response.status_code == 200:
         data = response.json()
         if data['ret'] == 0:
-            response = Response(data, content_type='application/json; charset=utf-8')
-            return response
-            # delateUser()
-
-        # captcha = input("\033[0;36m 请输入验证码：\033[0m")
-        # register(captcha)
-        return
+            print(data)
+            return data
+        return data
     print(response.json(), response.status_code)
+
+
+if __name__ == '__main__':
+    app.run()
