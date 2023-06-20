@@ -73,6 +73,7 @@ def buy(cookies):
 
 
 # 登陆
+@app.route('/login/<eml>')
 def login(eml):
     url = 'https://yypro.pro/auth/login'
     headers = {
