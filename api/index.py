@@ -92,10 +92,9 @@ def login(eml):
         print(f"\033[40;32m {data} \033[0m")
         cookies = res.cookies.get_dict()
         # 将cookie保存到本地文件
-        with open('cookie.json', 'w') as f:
-            json.dump(cookies, f)
-        sslink = buy(cookies)
-        return sslink
+       
+        # sslink = buy(cookies)
+        return cookies
     print(res.json(), res.status_code)
 
 
