@@ -29,10 +29,11 @@ userAgent = f'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, li
 
 # email = input("\033[0;34m请输入邮箱地址：\033[0m")
 email = 'freedomweb@yeah.net'
+cookies = ''
 
 
 # 获取SS链接
-def getSSLink(cookies):
+def getSSLink():
     url = 'https://yypro.pro/user'
     headers = {
         "user-agent": userAgent,
@@ -50,7 +51,8 @@ def getSSLink(cookies):
 
 
 # 购买
-def buy(cookies):
+@app.route('/buy')
+def buy():
     url = 'https://yypro.pro/user/buy'
     headers = {
         "user-agent": userAgent,
@@ -65,9 +67,7 @@ def buy(cookies):
     res = requests.post(url, params=params, cookies=cookies, headers=headers)
 
     if res.status_code == 200:
-        data = res.json()
-        print(f"\033[40;32m {data} \033[0m")
-        sslink =  getSSLink(cookies)
+        sslink = getSSLink()
         return sslink
     print(res.json(), res.status_code)
 
@@ -75,6 +75,7 @@ def buy(cookies):
 # 登陆
 @app.route('/login/<eml>')
 def login(eml):
+    global cookies
     url = 'https://yypro.pro/auth/login'
     headers = {
         "user-agent": userAgent,
@@ -90,12 +91,8 @@ def login(eml):
 
     if res.status_code == 200:
         data = res.json()
-        print(f"\033[40;32m {data} \033[0m")
         cookies = res.cookies.get_dict()
-        # 将cookie保存到本地文件
-       
-        # sslink = buy(cookies)
-        return cookies
+        return data
     print(res.json(), res.status_code)
 
 
@@ -126,6 +123,7 @@ def register(eml, captcha):
 # 删除用户api
 @app.route('/kill_user/<eml>')
 def delateUser(eml):
+    print(cookies)
     # login()
     # pwd = input('请输入您的密码：')
     url = 'https://yypro.pro/user/kill'
@@ -137,10 +135,6 @@ def delateUser(eml):
       'passwd': eml
     }
 
-    cookies = {}
-    with open('cookie.json', 'r') as f:
-        cookies = json.load(f)
-    cookies['email'] = urllib.parse.unquote(cookies['email'])
     response = requests.post(url, params=params, cookies=cookies, headers=headers)
     if response.status_code == 200:
         data = response.json()
