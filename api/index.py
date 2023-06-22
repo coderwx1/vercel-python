@@ -1,9 +1,8 @@
 from flask import Flask
 import requests
 from bs4 import BeautifulSoup
-import json
-import urllib.parse
 import random
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.debug = True
@@ -165,4 +164,5 @@ def sendCaptcha(eml):
 
 
 if __name__ == '__main__':
-    app.run()
+    CORS(app, supports_credentials=True)
+    app.run(port=5001)
